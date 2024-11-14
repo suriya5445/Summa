@@ -1,0 +1,30 @@
+---
+- hosts: all
+tags: always
+pre_tasks:
+- name: Validate {{ current_env }} Inventory Application Code
+  assert:
+    that: playbook_apcode == ap_code
+    fail_msg: "Expected AP Code : {{ playbook_apcode | upper }} --> Target Inventories has AP Code {{ ap_code | upper }}"
+
+  - hosts: websphere
+    tags: frontend
+    tasks:
+      -name: Deploy AMD Websphere in  {{ current_env }}
+      include_role:
+        name: deploy_websphere
+      vars:
+        artifactid: 'app-ear'
+        extention: 'EAR'
+        remoteName: 'app.ear'
+        RestartIhs: false
+    - hosts: Database
+    tags: name,backend,database
+    tasks:
+      - name: Determine passive mode from AMD cluster
+        include_role:
+          name: manage_cluster_veritas
+          when: cluaster
+    
+
+  
